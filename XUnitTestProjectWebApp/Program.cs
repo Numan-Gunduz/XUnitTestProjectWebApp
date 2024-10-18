@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using XUnitTestProjectWebApp.Context;
+using XUnitTestProjectWebApp.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ProductContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("DefaultConnectionString")));
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
