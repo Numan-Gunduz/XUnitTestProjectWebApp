@@ -7,22 +7,25 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using XUnitTestProjectWebApp.Context;
 using XUnitTestProjectWebApp.Models;
+using XUnitTestProjectWebApp.Repository;
 
 namespace XUnitTestProjectWebApp.Controllers
 {
     public class ProductsController : Controller
     {
-        private readonly ProductContext _context;
+        private readonly IRepository<Product> _repository;
 
-        public ProductsController(ProductContext context)
+        public ProductsController(IRepository<Product> repository)
         {
-            _context = context;
+            _repository = repository;
         }
+
+     
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.ToListAsync());
+            return View(await _repository.GetAll());
         }
 
         // GET: Products/Details/5
@@ -33,8 +36,7 @@ namespace XUnitTestProjectWebApp.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .FirstOrDefaultAsync(m => m.ProductID == id);
+            var product = await _repository.GetById((int)id);
             if (product == null)
             {
                 return NotFound();
@@ -49,17 +51,15 @@ namespace XUnitTestProjectWebApp.Controllers
             return View();
         }
 
-        // POST: Products/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+ 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor")] Product product)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
-                await _context.SaveChangesAsync();
+                 await _repository.Create(product);
+               
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -73,7 +73,7 @@ namespace XUnitTestProjectWebApp.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
+            var product = await _repository.GetById((int)id);
             if (product == null)
             {
                 return NotFound();
@@ -81,12 +81,10 @@ namespace XUnitTestProjectWebApp.Controllers
             return View(product);
         }
 
-        // POST: Products/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor")] Product product)
+        public  IActionResult Edit(int id, [Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor")] Product product)
         {
             if (id != product.ProductID)
             {
@@ -97,8 +95,8 @@ namespace XUnitTestProjectWebApp.Controllers
             {
                 try
                 {
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
+                   _repository.Update(product);
+                  
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -124,8 +122,8 @@ namespace XUnitTestProjectWebApp.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .FirstOrDefaultAsync(m => m.ProductID == id);
+            var product = await _repository.GetById((int)id);
+           
             if (product == null)
             {
                 return NotFound();
@@ -139,19 +137,28 @@ namespace XUnitTestProjectWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _repository.GetById((int)id);
             if (product != null)
             {
-                _context.Products.Remove(product);
+                _repository.Delete(product);
             }
 
-            await _context.SaveChangesAsync();
+      
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProductExists(int id)
         {
-            return _context.Products.Any(e => e.ProductID == id);
+            var product = _repository.GetById((int)id).Result;
+            if (product == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+
         }
     }
 }
