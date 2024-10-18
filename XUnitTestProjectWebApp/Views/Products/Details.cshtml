@@ -1,0 +1,27 @@
+﻿@model XUnitTestProjectWebApp.Models.Product
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<h1 class="my-4">Ürün Detayları</h1>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductName)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductName)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductPrice)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductPrice)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductStock)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductStock)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductColor)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductColor)</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.ProductID">🗘 Edit</a>
+    <a class="btn btn-secondary" asp-action="Index">Back to List</a>
+</div>

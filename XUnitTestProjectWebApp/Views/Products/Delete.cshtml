@@ -1,0 +1,32 @@
+﻿@model XUnitTestProjectWebApp.Models.Product
+
+@{
+    ViewData["Title"] = "Delete Product";
+}
+
+<h1 class="my-4">Ürün Sil</h1>
+
+<div class="alert alert-warning" role="alert">
+    <strong>bu ürünü silmek istediğinize emin misiniz?</strong>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductName)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductName)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductPrice)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductPrice)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductStock)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductStock)</dd>
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductColor)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductColor)</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="ProductID" />
+    <input type="submit" value="Delete" class="btn btn-danger" />
+    <a class="btn btn-secondary" asp-action="Index">İptal Et</a>
+</form>
