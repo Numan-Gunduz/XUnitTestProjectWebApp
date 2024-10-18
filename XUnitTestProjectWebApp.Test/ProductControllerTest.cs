@@ -51,10 +51,40 @@ namespace XUnitTestProjectWebApp.Test
         {
             _mockRepo.Setup(repo => repo.GetAll()).ReturnsAsync(_products);//ındexin içerisindeki gettall çalışınca fake olarak veri tabanına bağlanmak yerine yukarıda gösterilen dataları çekmeisnmi sağladık 
             var result = await _controller.Index();
-           var viewResult= Assert.IsType<ViewResult>(result);// ındex metotdumuzun dönüş türünün viewresult olup olmadığı test edildi
+            var viewResult = Assert.IsType<ViewResult>(result);// ındex metotdumuzun dönüş türünün viewresult olup olmadığı test edildi
             var productList = Assert.IsAssignableFrom<IEnumerable<Product>>(viewResult.Model);
 
             Assert.Equal<int>(2, productList.Count());// yukarıda iki tane ürün tanımlandığı için cevanın true olmasını bekliyoruz.
+        }
+      
+        [Fact]
+        public async void Details_IdIsNull_ReturnNotFound()
+        {
+            var result = await _controller.Details(null);
+            Assert.IsType<NotFoundResult>(result); // ID null olduğunda NotFound dönüşünü test eder
+        }
+
+        [Fact]
+        public async void Details_IdIsValid_ReturnProduct()
+        {
+            int productId = 20;
+            _mockRepo.Setup(repo => repo.GetById(productId)).ReturnsAsync(_products.FirstOrDefault(x => x.ProductID == productId));
+
+            var result = await _controller.Details(productId);
+            var viewResult = Assert.IsType<ViewResult>(result); 
+            var product = Assert.IsType<Product>(viewResult.Model);
+
+            Assert.Equal(productId, product.ProductID); 
+        }
+
+        [Fact]
+        public async void Details_ProductNotFound_ReturnNotFound()
+        {
+            int productId = 999; // olmayan bir ürün ID'si
+            _mockRepo.Setup(repo => repo.GetById(productId)).ReturnsAsync((Product)null);
+
+            var result = await _controller.Details(productId);
+            Assert.IsType<NotFoundResult>(result); // Product bulunamadığında NotFound dönüşünü test eder
         }
     }
 
