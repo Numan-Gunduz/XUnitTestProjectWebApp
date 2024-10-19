@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XUnitTestProjectWebApp.Controllers;
+using XUnitTestProjectWebApp.Helpers;
 using XUnitTestProjectWebApp.Models;
 using XUnitTestProjectWebApp.Repository;
 
@@ -16,12 +17,14 @@ namespace XUnitTestProjectWebApp.Test
 
         private readonly Mock<IRepository<Product>> _mockRepo;
         private readonly ProductsAPIController _controller;
+        private readonly Helper _helper;
         private List<Product> _products;
 
         public ProductControllerAPITest()
         {
             _mockRepo = new Mock<IRepository<Product>>();
             _controller = new ProductsAPIController(_mockRepo.Object);
+            _helper = new Helper();
             _products = new List<Product>()
             {
                 new Product { ProductName = "bardak", ProductID = 20, ProductColor = "Yeşil", ProductPrice = 150, ProductStock = 200 },
@@ -29,6 +32,18 @@ namespace XUnitTestProjectWebApp.Test
             };
 
         }
+
+        [Theory]
+        [InlineData(4,5,9)]
+        public void Add_SampleValues_ReturnTotal(int a,int b, int total)
+        {
+            var result = _helper.add(a, b);
+            Assert.Equal(total, result);
+        }
+
+
+
+
         [Fact]
 
         public async void GetProducts_ActionExecutes_ReturnOkResultWithProducts()
