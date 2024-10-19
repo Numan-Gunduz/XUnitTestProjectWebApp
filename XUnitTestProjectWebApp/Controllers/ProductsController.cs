@@ -82,6 +82,9 @@ namespace XUnitTestProjectWebApp.Controllers
         //    ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
         //    return View(product);
         //}
+
+
+
         // POST: Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -94,15 +97,6 @@ namespace XUnitTestProjectWebApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Eğer ModelState geçersizse hataları konsola yazdır
-            foreach (var modelStateKey in ModelState.Keys)
-            {
-                var value = ModelState[modelStateKey];
-                foreach (var error in value.Errors)
-                {
-                    Console.WriteLine($"Hata - Alan: {modelStateKey}, Mesaj: {error.ErrorMessage}");
-                }
-            }
 
             ViewBag.CategoryId = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
