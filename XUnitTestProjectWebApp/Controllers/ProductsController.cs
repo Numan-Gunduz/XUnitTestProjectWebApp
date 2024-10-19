@@ -7,25 +7,23 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using XUnitTestProjectWebApp.Context;
 using XUnitTestProjectWebApp.Models;
-using XUnitTestProjectWebApp.Repository;
 
 namespace XUnitTestProjectWebApp.Controllers
 {
     public class ProductsController : Controller
     {
-        private readonly IRepository<Product> _repository;
+        private readonly ProductContext _context;
 
-        public ProductsController(IRepository<Product> repository)
+        public ProductsController(ProductContext context)
         {
-            _repository = repository;
+            _context = context;
         }
-
-     
 
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _repository.GetAll());
+            var productContext = _context.Products.Include(p => p.Category);
+            return View(await productContext.ToListAsync());
         }
 
         // GET: Products/Details/5
@@ -36,7 +34,9 @@ namespace XUnitTestProjectWebApp.Controllers
                 return NotFound();
             }
 
-            var product = await _repository.GetById((int)id);
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(m => m.ProductID == id);
             if (product == null)
             {
                 return NotFound();
@@ -46,25 +46,67 @@ namespace XUnitTestProjectWebApp.Controllers
         }
 
         // GET: Products/Create
+        //public IActionResult Create()
+        //{
+        //    ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName");
+        //    return View();
+        //}
         public IActionResult Create()
         {
+            // Veritabanından kategorileri alıp dropdown menüsü için ViewBag'e ekliyoruz
+            var categories = _context.Categories.ToList();
+            if (categories == null || !categories.Any())
+            {
+                Console.WriteLine("Kategori bulunamadı, veritabanını kontrol edin!");
+            }
+            ViewBag.CategoryId = new SelectList(categories, "CategoryId", "CategoryName");
             return View();
         }
 
- 
+
+
+
+        // POST: Products/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Create([Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor,CategoryId")] Product product)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        _context.Add(product);
+        //        await _context.SaveChangesAsync();
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
+        //    return View(product);
+        //}
+        // POST: Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor")] Product product)
+        public async Task<IActionResult> Create([Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor,CategoryId")] Product product)
         {
             if (ModelState.IsValid)
             {
-                 await _repository.Create(product);
-               
+                _context.Add(product);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            // Eğer ModelState geçersizse hataları konsola yazdır
+            foreach (var modelStateKey in ModelState.Keys)
+            {
+                var value = ModelState[modelStateKey];
+                foreach (var error in value.Errors)
+                {
+                    Console.WriteLine($"Hata - Alan: {modelStateKey}, Mesaj: {error.ErrorMessage}");
+                }
+            }
+
+            ViewBag.CategoryId = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
         }
-
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -73,18 +115,21 @@ namespace XUnitTestProjectWebApp.Controllers
                 return NotFound();
             }
 
-            var product = await _repository.GetById((int)id);
+            var product = await _context.Products.FindAsync(id);
             if (product == null)
             {
                 return NotFound();
             }
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
         }
 
-        
+        // POST: Products/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public  IActionResult Edit(int id, [Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor,CategoryId")] Product product)
         {
             if (id != product.ProductID)
             {
@@ -95,8 +140,8 @@ namespace XUnitTestProjectWebApp.Controllers
             {
                 try
                 {
-                   _repository.Update(product);
-                  
+                    _context.Update(product);
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -111,6 +156,7 @@ namespace XUnitTestProjectWebApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
         }
 
@@ -122,8 +168,9 @@ namespace XUnitTestProjectWebApp.Controllers
                 return NotFound();
             }
 
-            var product = await _repository.GetById((int)id);
-           
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(m => m.ProductID == id);
             if (product == null)
             {
                 return NotFound();
@@ -137,28 +184,19 @@ namespace XUnitTestProjectWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _repository.GetById((int)id);
+            var product = await _context.Products.FindAsync(id);
             if (product != null)
             {
-                _repository.Delete(product);
+                _context.Products.Remove(product);
             }
 
-      
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProductExists(int id)
         {
-            var product = _repository.GetById((int)id).Result;
-            if (product == null)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-
+            return _context.Products.Any(e => e.ProductID == id);
         }
     }
 }
