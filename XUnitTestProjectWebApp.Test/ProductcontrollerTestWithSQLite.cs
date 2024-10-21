@@ -60,7 +60,7 @@ namespace XUnitTestProjectWebApp.Test
 
             using (var context = new ProductContext(_contextOptions))
             {
-                var products = await context.Products.Where(x => x.CategoryId == categoryId).ToListAsync();//bu listenin boş gelmesini bekliyorum fakat InMemory ilişkisel değilli!1
+                var products = await context.Products.Where(x => x.CategoryId == categoryId).ToListAsync();
                 Assert.Empty(products);
             }
         }
