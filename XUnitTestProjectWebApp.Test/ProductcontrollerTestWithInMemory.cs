@@ -30,7 +30,7 @@ namespace XUnitTestProjectWebApp.Test
                 newproduct.CategoryId = category.CategoryId;
                 var controller = new ProductsController(context);
                 var result = await controller.Create(newproduct);
-                var redirect = Assert.IsType<RedirectToActionResult>(result);
+                var redirect = Assert.IsType<RedirectToActionResult>(result);   
                 Assert.Equal("Index", redirect.ActionName);
 
 
@@ -56,7 +56,7 @@ namespace XUnitTestProjectWebApp.Test
 
             using (var context = new ProductContext(_contextOptions))
             {
-                var products = await context.Products.Where(x => x.CategoryId == categoryId).ToListAsync();
+                var products = await context.Products.Where(x => x.CategoryId == categoryId).ToListAsync();//bu listenin boş gelmesini bekliyorum fakat InMemory ilişkisel değilli!1
                 Assert.Empty(products);
             }
         }
