@@ -28,7 +28,9 @@ namespace XUnitTestProjectWebApp.Test
 
                 var category = await context.Categories.FirstAsync();
                 newproduct.CategoryId = category.CategoryId;
-                var controller = new ProductsController(context);
+                var validator = new ProductValidator();
+
+                var controller = new ProductsController(context, validator);
                 var result = await controller.Create(newproduct);
                 var redirect = Assert.IsType<RedirectToActionResult>(result);   
                 Assert.Equal("Index", redirect.ActionName);

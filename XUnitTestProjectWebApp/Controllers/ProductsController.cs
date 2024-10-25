@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,19 +12,19 @@ namespace XUnitTestProjectWebApp.Controllers
     public class ProductsController : Controller
     {
         private readonly ProductContext _context;
+        private readonly IValidator<Product> _validator;
 
-        public ProductsController(ProductContext context)
+        public ProductsController(ProductContext context, IValidator<Product> validator)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
-
 
         public async Task<IActionResult> Index()
         {
             var productContext = _context.Products.Include(p => p.Category);
             return View(await productContext.ToListAsync());
         }
-
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -47,7 +46,6 @@ namespace XUnitTestProjectWebApp.Controllers
 
         public IActionResult Create()
         {
-            // Veritabanından kategorileri alıp dropdown menüsü için ViewBag'e ekliyoruz
             var categories = _context.Categories.ToList();
             if (categories == null || !categories.Any())
             {
@@ -61,6 +59,19 @@ namespace XUnitTestProjectWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor,CategoryId")] Product product)
         {
+            ValidationResult validationResult = await _validator.ValidateAsync(product);
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+
+                //Hata durumunda view geri dönülüyor ve hata mesajları gösteriliyor.
+               ViewBag.CategoryId = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName", product.CategoryId);
+                return View(product);
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(product);
@@ -68,10 +79,10 @@ namespace XUnitTestProjectWebApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-
             ViewBag.CategoryId = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
         }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -87,6 +98,7 @@ namespace XUnitTestProjectWebApp.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor,CategoryId")] Product product)
@@ -94,6 +106,19 @@ namespace XUnitTestProjectWebApp.Controllers
             if (id != product.ProductID)
             {
                 return NotFound();
+            }
+
+            ValidationResult validationResult = await _validator.ValidateAsync(product);
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+
+                // Hata durumunda view geri dönülüyor ve hata mesajları gösteriliyor.
+                ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
+                return View(product);
             }
 
             if (ModelState.IsValid)
@@ -119,6 +144,7 @@ namespace XUnitTestProjectWebApp.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
         }
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
