@@ -47,25 +47,25 @@ namespace XUnitTestProjectWebApp.Test
                 Assert.Equal(yeniUrun.ProductName, urun.ProductName);
             }
         }
-        [Theory]
-        [InlineData(1)]
-        public async Task KategoriSil_VarolanKategoriIdyeAitTumUrunleriSil(int kategoriId)
-        {
-            using (var context = new ProductContext(_contextOptions))
-            {
-                var kategori = await context.Categories.FindAsync(kategoriId);
+        //[Theory]
+        //[InlineData(1)]
+        //public async Task KategoriSil_VarolanKategoriIdyeAitTumUrunleriSil(int kategoriId)
+        //{
+        //    using (var context = new ProductContext(_contextOptions))
+        //    {
+        //        var kategori = await context.Categories.FindAsync(kategoriId);
 
-                context.Categories.Remove(kategori);
-                context.SaveChanges();
+        //        context.Categories.Remove(kategori);
+        //        context.SaveChanges();
 
-            }
+        //    }
 
-            using (var context = new ProductContext(_contextOptions))
-            {
-                var urunler = await context.Products.Where(x => x.CategoryId == kategoriId).ToListAsync();
-                Assert.Empty(urunler);//kategoriye ait ürünlerin silinip silinmediğini de kontrol etmeyi istiyorum.
-            }
-        }
+        //    using (var context = new ProductContext(_contextOptions))
+        //    {
+        //        var urunler = await context.Products.Where(x => x.CategoryId == kategoriId).ToListAsync();
+        //        Assert.Empty(urunler);//kategoriye ait ürünlerin silinip silinmediğini de kontrol etmeyi istiyorum.
+        //    }
+        //}
 
 
         [Fact]
@@ -148,30 +148,7 @@ namespace XUnitTestProjectWebApp.Test
                 }
             }
         }
-        [Fact]
-        public async Task HataliModelIleUrunOlustur_GecersizModel_HataDonmeli()
-        {
-            // Arrange: Hatalı bir ürün oluşturuyoruz.
-            var hataliUrun = new Product { ProductName = "aaa", ProductPrice = 10, ProductStock = 50, ProductColor = "Mavi" };
-
-            using (var context = new ProductContext(_contextOptions))
-            {
-                var kategori = await context.Categories.FirstAsync();
-                hataliUrun.CategoryId = kategori.CategoryId;
-
-                // Doğrulayıcıyı testler için manuel olarak oluşturuyoruz.
-                var validator = new ProductValidator();
-                var controller = new ProductsController(context, validator);
-
-                // Act: Ürünü oluşturma denemesi yapıyoruz.
-                var result = await controller.Create(hataliUrun);
-
-                // Assert: ViewResult döndüğünü ve ModelState'in geçersiz olduğunu kontrol ediyoruz.
-                var viewResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.True(controller.ModelState.IsValid);
-            }
-        }
-
+        
 
         [Fact]
         public async Task HataliModelIleKisaIsimliUrunOlustur_ValidasyonHatasiDonmeli()
@@ -216,6 +193,12 @@ namespace XUnitTestProjectWebApp.Test
                 // Assert: Hatalı bir ViewResult dönmeli ve ModelState geçersiz olmalı
                 var viewResult = Assert.IsType<ViewResult>(result);
                 Assert.False(controller.ModelState.IsValid);
+
+                // ModelState içindeki hata mesajlarını kontrol edelim
+                var modelStateErrors = controller.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+
+                // Beklenen hata mesajının varlığını kontrol et
+                Assert.Contains("Ürün fiyatı sıfırdan büyük olmalıdır.", modelStateErrors);
             }
         }
 

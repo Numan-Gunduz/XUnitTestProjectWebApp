@@ -54,34 +54,35 @@ namespace XUnitTestProjectWebApp.Controllers
             ViewBag.CategoryId = new SelectList(categories, "CategoryId", "CategoryName");
             return View();
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ProductID,ProductName,ProductPrice,ProductStock,ProductColor,CategoryId")] Product product)
         {
-            ValidationResult validationResult = await _validator.ValidateAsync(product);
+            // FluentValidation kullanarak doğrulama yap
+            var validationResult = await _validator.ValidateAsync(product);
+
             if (!validationResult.IsValid)
             {
+                // Hataları ModelState'e ekle
                 foreach (var error in validationResult.Errors)
                 {
                     ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
                 }
+            }
 
-                //Hata durumunda view geri dönülüyor ve hata mesajları gösteriliyor.
-               ViewBag.CategoryId = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName", product.CategoryId);
+            // ModelState geçerli değilse, kullanıcıya tekrar formu göster ve hataları bildir
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CategoryId = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName", product.CategoryId);
                 return View(product);
             }
 
-            if (ModelState.IsValid)
-            {
-                _context.Add(product);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.CategoryId = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName", product.CategoryId);
-            return View(product);
+            // ModelState geçerliyse, ürünü ekleyin
+            _context.Add(product);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
+
 
         public async Task<IActionResult> Edit(int? id)
         {
