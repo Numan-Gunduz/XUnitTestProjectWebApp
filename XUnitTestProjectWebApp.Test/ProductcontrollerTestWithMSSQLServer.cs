@@ -67,14 +67,20 @@ namespace XUnitTestProjectWebApp.Test
         //    }
         //}
 
-
         [Fact]
+
+
+        //anladıklarım : anladığım kadarıyla biz rulefor bazında geçersiz bir ürün testini yaptığımızda sadece o ürünün eklenmesinde hata görmeliyiz. ikinci rulefor satırındaki 
+        //eklemeye çalıştığımız doğru rulefor ise orada sıkıntı yaşamamız gerekiyor 
+
         public async Task VarolanUrunGuncelle_BasariliGuncelleme()
         {
             using (var context = new ProductContext(_contextOptions))
             {
                 var mevcutUrun = await context.Products.FirstAsync();
+
                 mevcutUrun.ProductPrice = 300;
+                mevcutUrun.ProductName = "numannn";
                 var validator = new ProductValidator();
 
                 var controller = new ProductsController(context, validator);
@@ -87,6 +93,7 @@ namespace XUnitTestProjectWebApp.Test
             {
                 var guncellenmisUrun = await context.Products.FirstAsync(p => p.ProductID == 1);
                 Assert.Equal(300, guncellenmisUrun.ProductPrice);
+        
             }
         }
         [Theory]
