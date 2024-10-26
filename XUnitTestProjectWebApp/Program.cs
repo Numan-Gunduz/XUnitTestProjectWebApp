@@ -1,11 +1,16 @@
+using FluentValidation.AspNetCore;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using XUnitTestProjectWebApp.Context;
+using XUnitTestProjectWebApp.Models;
 using XUnitTestProjectWebApp.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IValidator<Product>, ProductValidator>();
+builder.Services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<ProductValidator>());
 builder.Services.AddDbContext<ProductContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("DefaultConnectionString")));
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

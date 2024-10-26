@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,13 +15,16 @@ namespace XUnitTestProjectWebApp.Controllers
     public class ProductsController : Controller
     {
         private readonly IRepository<Product> _repository;
+        private readonly IValidator<Product> _validator;
 
-        public ProductsController(IRepository<Product> repository)
+
+        public ProductsController(IRepository<Product> repository, IValidator<Product> validator)
         {
             _repository = repository;
+            _validator = validator;
         }
 
-     
+
 
         // GET: Products
         public async Task<IActionResult> Index()
