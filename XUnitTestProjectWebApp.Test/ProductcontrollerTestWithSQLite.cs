@@ -52,9 +52,9 @@ namespace XUnitTestProjectWebApp.Test
         {
             using (var context = new ProductContext(_contextOptions))
             {
-                var category=await context.Categories.FindAsync(categoryId);
+                var category = await context.Categories.FindAsync(categoryId);
                 Assert.NotNull(category);
-                
+
                 context.Categories.Remove(category);
                 context.SaveChanges();
 
@@ -64,6 +64,31 @@ namespace XUnitTestProjectWebApp.Test
             {
                 var products = await context.Products.Where(x => x.CategoryId == categoryId).ToListAsync();
                 Assert.Empty(products);
+            }
+        }
+        [Fact]
+        public async Task HataliModelIleBirdenFazlaKuralIhlali_DigerKurallarCalismali()
+        {
+            // Arrange: Hem ürün ismi çok kısa, hem de fiyat negatif olan geçersiz bir ürün oluşturuyoruz.
+            var hataliUrun = new Product { ProductName = "a", ProductPrice = -10, ProductStock = 50, ProductColor = "Mavi" };
+
+            using (var context = new ProductContext(_contextOptions))
+            {
+                var kategori = await context.Categories.FirstAsync();
+                hataliUrun.CategoryId = kategori.CategoryId;
+
+                var validator = new ProductValidator();
+                var validationResult = await validator.ValidateAsync(hataliUrun);
+
+                // Assert: ModelState'in geçersiz olduğunu ve her iki hatanın da döndüğünü kontrol edelim.
+                Assert.False(validationResult.IsValid);
+
+                // Hata mesajlarını kontrol edelim
+                var errorMessages = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+
+                // İki hata mesajı da döndü mü?
+                Assert.Contains("Ürün İsmi 2-50 karakter arasında olması gerekiyor", errorMessages);
+                Assert.Contains("Ürün fiyatı sıfırdan büyük olmalıdır.", errorMessages);
             }
         }
     }

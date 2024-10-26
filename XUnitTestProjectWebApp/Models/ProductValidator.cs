@@ -5,33 +5,28 @@ namespace XUnitTestProjectWebApp.Models
     public class ProductValidator : AbstractValidator<Product>
     {
         public ProductValidator()
-
         {
+            // Ürün ismi kuralları
+            RuleFor(p => p.ProductName)
+                .Must(name => !string.IsNullOrEmpty(name))
+                .WithMessage("Ürün İsmi Boş Geçilemez")
+                .Must(name => name.Length >= 2 && name.Length <= 50)
+                .WithMessage("Ürün İsmi 2-50 karakter arasında olması gerekiyor");
 
-            RuleFor(p => p.ProductName).NotEmpty().WithMessage("Ürün İsmi Boş Geçilemez")
-                
-                .Length(2, 50).WithMessage("Ürün İsmi 2-50 karakter arasında olması gerekiyor");
-
-
+            // Ürün fiyatı kuralları
             RuleFor(product => product.ProductPrice)
-               .GreaterThan(0)
-               .WithMessage("Ürün fiyatı sıfırdan büyük olmalıdır.")
-               .Must((product, price) =>
-               {
-                   if (price <= 0)
-                   {
-                       throw new ValidationException("Ürün fiyatı sıfırdan büyük olmalıdır.");
-                   }
-                   return true;
-               })
-          //  RuleFor(product => product.ProductPrice)
-    .GreaterThan(0)
-    .WithMessage("Ürün fiyatı sıfırdan büyük olmalıdır.")
-    .Must((product, price) => price > 0)
-    .WithMessage("Ürün fiyatı sıfırdan büyük olmalıdır.");
+                .Must(price => price > 0)
+                .WithMessage("Ürün fiyatı sıfırdan büyük olmalıdır.");
 
-            RuleFor(p => p.ProductStock).GreaterThanOrEqualTo(0).WithMessage("Ürünün Stock Adedi 0'a eşit veya büyük olmak zorundadır");
-            RuleFor(p => p.CategoryId).NotNull().WithMessage("Ürüne Ait kategori Id alanı boş geçilmez");
+            // Ürün stoğu kuralları
+            RuleFor(p => p.ProductStock)
+                .Must(stock => stock >= 0)
+                .WithMessage("Ürünün Stok Adedi 0'a eşit veya büyük olmak zorundadır");
+
+            // Kategori Id kuralları
+            RuleFor(p => p.CategoryId)
+                .Must(categoryId => categoryId != null)
+                .WithMessage("Ürüne Ait kategori Id alanı boş geçilmez");
         }
     }
 }

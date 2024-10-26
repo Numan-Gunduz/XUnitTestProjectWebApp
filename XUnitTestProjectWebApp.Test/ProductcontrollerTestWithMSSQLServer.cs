@@ -79,7 +79,7 @@ namespace XUnitTestProjectWebApp.Test
             {
                 var mevcutUrun = await context.Products.FirstAsync();
 
-                mevcutUrun.ProductPrice = 300;
+                mevcutUrun.ProductPrice = -300;
                 mevcutUrun.ProductName = "numannn";
                 var validator = new ProductValidator();
 
@@ -274,6 +274,87 @@ namespace XUnitTestProjectWebApp.Test
                 Assert.NotNull(kaydedilenUrun);
             }
         }
+        [Fact]
+        public async Task HataliModelIleBirdenFazlaKuralIhlali_DigerKurallarCalismali()
+        {
+            // Arrange: Hem ürün ismi çok kısa, hem de fiyat negatif olan geçersiz bir ürün oluşturuyoruz.
+            var hataliUrun = new Product { ProductName = "a", ProductPrice = -10, ProductStock = -50, ProductColor = "Mavi" };
+
+            using (var context = new ProductContext(_contextOptions))
+            {
+                var kategori = await context.Categories.FirstAsync();
+                hataliUrun.CategoryId = kategori.CategoryId;
+
+                var validator = new ProductValidator();
+                var validationResult = await validator.ValidateAsync(hataliUrun);
+
+                // Assert: ModelState'in geçersiz olduğunu ve hataların sayısını kontrol et
+                Assert.False(validationResult.IsValid);
+
+                // Tüm hata mesajlarını yazdıralım
+                foreach (var error in validationResult.Errors)
+                {
+                    Console.WriteLine($"Hata: {error.PropertyName} - {error.ErrorMessage}");
+                }
+
+                // Hataların sayısının ne olduğunu kontrol edelim
+                Assert.Equal(3, validationResult.Errors.Count); // Burada 3 hata bekliyoruz: ProductName, ProductPrice, ProductStock
+            }
+        }
+
+
+        [Fact]
+        public async Task HataliModelIleBirdenFazlaKuralIhlali_DigerKurallarCalismaliII()
+        {
+            // Arrange: Hem ürün ismi çok kısa, hem de fiyat negatif olan geçersiz bir ürün oluşturuyoruz.
+            var hataliUrun = new Product { ProductName = "", ProductPrice = -10, ProductStock = -50, ProductColor = "Mavi" };
+
+            using (var context = new ProductContext(_contextOptions))
+            {
+                var kategori = await context.Categories.FirstAsync();
+                hataliUrun.CategoryId = kategori.CategoryId;
+
+                var validator = new ProductValidator();
+                var validationResult = await validator.ValidateAsync(hataliUrun);
+
+                // Assert: ModelState'in geçersiz olduğunu ve hataların sayısını kontrol et
+                Assert.False(validationResult.IsValid);
+
+                // Tüm hata mesajlarını yazdıralım
+                foreach (var error in validationResult.Errors)
+                {
+                    Console.WriteLine($"Hata: {error.PropertyName} - {error.ErrorMessage}");
+                }
+
+                // Hataların sayısının ne olduğunu kontrol edelim
+                Assert.Equal(4, validationResult.Errors.Count);
+            }
+        }
+        [Fact]
+        public async Task HataliModelIleBirdenFazlaKuralIhlali_DigerKurallarCalismali_PropertyKontrol()
+        {
+            // Arrange: Hem ürün ismi çok kısa, hem de fiyat negatif olan geçersiz bir ürün oluşturuyoruz.
+            var hataliUrun = new Product { ProductName = "a", ProductPrice = -10, ProductStock = -50, ProductColor = "Mavi" };
+
+            using (var context = new ProductContext(_contextOptions))
+            {
+                var kategori = await context.Categories.FirstAsync();
+                hataliUrun.CategoryId = kategori.CategoryId;
+
+                var validator = new ProductValidator();
+                var validationResult = await validator.ValidateAsync(hataliUrun);
+
+                // Assert: ModelState'in geçersiz olduğunu kontrol et
+                Assert.False(validationResult.IsValid);
+
+                // Hataların ilgili alanlara ait olup olmadığını kontrol edelim
+                var propertyNames = validationResult.Errors.Select(e => e.PropertyName).ToList();
+                Assert.Contains("ProductName", propertyNames);
+                Assert.Contains("ProductPrice", propertyNames);
+                Assert.Contains("ProductStock", propertyNames); // ProductStock hatası kontrol ediliyor.
+            }
+        }
+
 
     }
 }
