@@ -61,7 +61,7 @@ namespace XUnitTestProjectWebApp.Test
         public async Task HataliModelIleBirdenFazlaKuralIhlali_DigerKurallarCalismali_MockIle()
         {
             // Arrange: Hem ürün ismi çok kısa, hem de fiyat negatif olan geçersiz bir ürün oluşturuyoruz.
-            var hataliUrun = new Product { ProductName = "a", ProductPrice = 10, ProductStock = -5, ProductColor = "Mavi" };
+            var hataliUrun = new Product { ProductName = "", ProductPrice = 10, ProductStock = -5, ProductColor = "Mavi" };
 
             // Act: Gerçek validator kullanarak validasyonu gerçekleştiriyoruz.
             var validationResult = await _validator.ValidateAsync(hataliUrun);
@@ -70,12 +70,14 @@ namespace XUnitTestProjectWebApp.Test
             Assert.False(validationResult.IsValid);
 
             // Hataların sayısını kontrol edelim
-            Assert.Equal(2, validationResult.Errors.Count);
+            Assert.Equal(3, validationResult.Errors.Count);
 
             // Hata mesajlarını kontrol edelim
             var errorMessages = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+        
+            Assert.Contains("Ürün İsmi Boş Geçilemez", errorMessages);
             Assert.Contains("Ürün İsmi 2-50 karakter arasında olması gerekiyor", errorMessages);
-            Assert.Contains("Ürün fiyatı sıfırdan büyük olmalıdır.", errorMessages);
+            Assert.DoesNotContain("Ürün fiyatı sıfırdan büyük olmalıdır.", errorMessages);
             Assert.Contains("Ürünün Stok Adedi 0'a eşit veya büyük olmak zorundadır", errorMessages);
         }
 
