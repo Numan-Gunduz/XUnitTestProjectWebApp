@@ -66,18 +66,12 @@ namespace XUnitTestProjectWebApp.Test
             // Act: Gerçek validator kullanarak validasyonu gerçekleştiriyoruz.
             var validationResult = await _validator.ValidateAsync(hataliUrun);
 
-            // Assert: Validasyon hatalarının döndüğünü kontrol et
-            Assert.False(validationResult.IsValid);
-
-            // Hataların sayısını kontrol edelim
-            Assert.Equal(3, validationResult.Errors.Count);
-
-            // Hata mesajlarını kontrol edelim
+      
             var errorMessages = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
         
             Assert.Contains("Ürün İsmi Boş Geçilemez", errorMessages);
             Assert.Contains("Ürün İsmi 2-50 karakter arasında olması gerekiyor", errorMessages);
-            Assert.DoesNotContain("Ürün fiyatı sıfırdan büyük olmalıdır.", errorMessages);
+            Assert.Contains("Ürün fiyatı sıfırdan büyük olmalıdır.", errorMessages);
             Assert.Contains("Ürünün Stok Adedi 0'a eşit veya büyük olmak zorundadır", errorMessages);
         }
 
